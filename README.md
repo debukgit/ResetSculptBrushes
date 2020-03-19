@@ -1,4 +1,4 @@
-# ResetSculptBrushes
+# ResetSculptBrushes 1.0.1
 
 <img src="images/resetsculptbrushes.png">
 Adds a "Reset All Brushes" option to the sculpt brush property panel and to the filemenu of <a href="https://www.blender.org">blender 2.8</a>  to reset all brush settings back to their current defaults.
