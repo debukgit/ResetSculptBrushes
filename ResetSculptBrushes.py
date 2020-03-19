@@ -34,7 +34,6 @@ def main(context):
     recentbrush = bpy.context.tool_settings.sculpt.brush
     for brush in bpy.data.brushes:
         if brush.use_paint_sculpt:
-            print(brush.name)
             bpy.context.tool_settings.sculpt.brush = brush
             bpy.ops.brush.reset()
     bpy.context.tool_settings.sculpt.brush = recentbrush
