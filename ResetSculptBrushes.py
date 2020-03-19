@@ -20,8 +20,8 @@ bl_info = {
     "name": "ResetSculptBrushes",
     "description": "Resets All Sculpt Brushes",
     "author": "Debuk",
-    "version": (1, 0),
-    'license': 'GPL',
+    "version": (1, 0, 1),
+    'license': 'GPL v3',
     "blender": (2, 80, 0),
     "support": "COMMUNITY",
     "category": "Sculpt"
@@ -30,48 +30,15 @@ bl_info = {
 
 import bpy
 
-brushnames = [
-"builtin_brush.Draw",
-"builtin_brush.Draw Sharp",
-"builtin_brush.Clay",
-"builtin_brush.Clay Strips",
-"builtin_brush.Clay Thumb",
-"builtin_brush.Layer",
-"builtin_brush.Inflate",
-"builtin_brush.Blob",
-"builtin_brush.Crease",
-"builtin_brush.Smooth",
-"builtin_brush.Flatten",
-"builtin_brush.Fill",
-"builtin_brush.Multi-plane Scrape",
-"builtin_brush.Pinch",
-"builtin_brush.Grab",
-"builtin_brush.Elastic Deform",
-"builtin_brush.Snake Hook",
-"builtin_brush.Thumb",
-"builtin_brush.Pose",
-"builtin_brush.Nudge",
-"builtin_brush.Rotate",
-"builtin_brush.Slide Relax",
-"builtin_brush.Cloth",
-"builtin_brush.Simplify",
-"builtin_brush.Mask",
-"builtin_brush.Draw Face Sets"
-]
-
-# context override
-def set_active_tool(tool_name):
-    for area in bpy.context.screen.areas:
-        if area.type == "VIEW_3D":
-            override = bpy.context.copy()
-            override["space_data"] = area.spaces[0]
-            override["area"] = area
-            bpy.ops.wm.tool_set_by_id(override, name=tool_name)
-
 def main(context):
-    for brushname in brushnames:
-        set_active_tool(brushname)
-        bpy.ops.brush.reset()
+    recentbrush = bpy.context.tool_settings.sculpt.brush
+    for brush in bpy.data.brushes:
+        if brush.use_paint_sculpt:
+            print(brush.name)
+            bpy.context.tool_settings.sculpt.brush = brush
+            bpy.ops.brush.reset()
+    bpy.context.tool_settings.sculpt.brush = recentbrush
+
 
 def menu_draw(self, context):
     self.layout.operator("sculpt.reset_sculpt_brushes")
@@ -91,10 +58,12 @@ class ResetSculptBrushes(bpy.types.Operator):
 def register():
     bpy.utils.register_class(ResetSculptBrushes)
     bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
+    bpy.types.TOPBAR_MT_file_defaults.append(menu_draw)
 
 def unregister():
     bpy.utils.unregister_class(ResetSculptBrushes)
     bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
+    bpy.types.TOPBAR_MT_file_defaults.remove(menu_draw)
 
 if __name__ == "__main__":
     register()
