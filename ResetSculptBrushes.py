@@ -20,7 +20,7 @@ bl_info = {
     "name": "ResetSculptBrushes",
     "description": "Resets All Sculpt Brushes",
     "author": "Debuk",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     'license': 'GPL v3',
     "blender": (2, 80, 0),
     "support": "COMMUNITY",
@@ -30,8 +30,9 @@ bl_info = {
 import bpy
 from bpy.types import Operator, AddonPreferences
 from bpy.props import BoolProperty
+from bpy.app.handlers import persistent
 
-def main(context):
+def main():
     recentbrush = bpy.context.tool_settings.sculpt.brush
     for brush in bpy.data.brushes:
         if brush.use_paint_sculpt:
@@ -54,6 +55,12 @@ def fileEntryUpdate(self, context):
     else:
         bpy.types.TOPBAR_MT_file_defaults.remove(menu_draw)
 
+def autoResetUpdate(self, context):
+    if self.autoResetBrushes:
+        bpy.app.handlers.load_post.append(load_handler)
+    else:
+        bpy.app.handlers.load_post.remove(load_handler)
+
 class ResetSculptBrushes(bpy.types.Operator):
     """Reset Sculpt Brushes"""
     bl_idname = "sculpt.reset_sculpt_brushes"
@@ -61,7 +68,7 @@ class ResetSculptBrushes(bpy.types.Operator):
 
 
     def execute(self, context):
-        main(context)
+        main()
         return {'FINISHED'}
 
 class ResetSculptBrushesPreferences(AddonPreferences):
@@ -81,11 +88,24 @@ class ResetSculptBrushesPreferences(AddonPreferences):
         update = fileEntryUpdate,
     )
 
+    autoResetBrushes: BoolProperty(
+        name="AutoReset on every File-Load",
+        default=False,
+        update = autoResetUpdate,
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="UI Integration")
         layout.prop(self, "propEntry")
         layout.prop(self, "fileEntry")
+        layout.label(text="Extras")
+        layout.prop(self, "autoResetBrushes")
+
+@persistent
+def load_handler(dummy):
+    print("ResetSculptBrushes - Reset on load:", bpy.data.filepath)
+    main()
 
 def register():
     bpy.utils.register_class(ResetSculptBrushes)
@@ -95,6 +115,8 @@ def register():
         bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
     if addon_prefs.propEntry:
         bpy.types.TOPBAR_MT_file_defaults.append(menu_draw)
+    if addon_prefs.autoResetBrushes:
+        bpy.app.handlers.load_post.append(load_handler)
 
 def unregister():
     bpy.utils.unregister_class(ResetSculptBrushes)
@@ -102,6 +124,7 @@ def unregister():
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
     bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
     bpy.types.TOPBAR_MT_file_defaults.remove(menu_draw)
+    bpy.app.handlers.load_post.remove(load_handler)
 
 if __name__ == "__main__":
     register()
