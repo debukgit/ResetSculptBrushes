@@ -111,7 +111,6 @@ def load_handler(dummy):
 
 def register():
     hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
-    print("You're Blender version is too old!")
     bpy.utils.register_class(ResetSculptBrushes)
     bpy.utils.register_class(ResetSculptBrushesPreferences)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
