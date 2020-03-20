@@ -20,7 +20,7 @@ bl_info = {
     "name": "ResetSculptBrushes",
     "description": "Resets All Sculpt Brushes",
     "author": "Debuk",
-    "version": (1, 0, 3),
+    "version": (1, 0, 4),
     'license': 'GPL v3',
     "blender": (2, 80, 0),
     "support": "COMMUNITY",
@@ -44,10 +44,12 @@ def menu_draw(self, context):
     self.layout.operator("sculpt.reset_sculpt_brushes")
 
 def propEntryUpdate(self, context):
-    if self.propEntry:
-        bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
-    else:
-        bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
+    hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
+    if (hasBrushContextMenu):
+        if self.propEntry:
+            bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
+        else:
+            bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
 
 def fileEntryUpdate(self, context):
     if self.fileEntry:
@@ -77,7 +79,7 @@ class ResetSculptBrushesPreferences(AddonPreferences):
     bl_idname = __name__
 
     propEntry: BoolProperty(
-        name="Add Entry to Brush Specials Dropdown(Active Tool Properties Panel)",
+        name="Add Entry to Brush Specials Dropdown  (ActiveTool-Properties-Panel)  [Requires 2.81 or newer]",
         default=True,
         update = propEntryUpdate
     )
@@ -108,10 +110,12 @@ def load_handler(dummy):
     main()
 
 def register():
+    hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
+    print("You're Blender version is too old!")
     bpy.utils.register_class(ResetSculptBrushes)
     bpy.utils.register_class(ResetSculptBrushesPreferences)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
-    if addon_prefs.fileEntry:
+    if addon_prefs.fileEntry and hasBrushContextMenu:
         bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
     if addon_prefs.propEntry:
         bpy.types.TOPBAR_MT_file_defaults.append(menu_draw)
@@ -119,10 +123,12 @@ def register():
         bpy.app.handlers.load_post.append(load_handler)
 
 def unregister():
+    hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
     bpy.utils.unregister_class(ResetSculptBrushes)
     bpy.utils.unregister_class(ResetSculptBrushesPreferences)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
-    bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
+    if hasBrushContextMenu:
+        bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
     bpy.types.TOPBAR_MT_file_defaults.remove(menu_draw)
     bpy.app.handlers.load_post.remove(load_handler)
 
