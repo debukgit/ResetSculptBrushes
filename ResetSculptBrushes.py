@@ -20,7 +20,7 @@ bl_info = {
     "name": "ResetSculptBrushes",
     "description": "Resets All Sculpt Brushes",
     "author": "Debuk",
-    "version": (1, 0, 4),
+    "version": (1, 1, 0),
     'license': 'GPL v3',
     "blender": (2, 80, 0),
     "support": "COMMUNITY",
@@ -28,8 +28,11 @@ bl_info = {
 }
 
 import bpy
+import sys
+import os
+import time
 from bpy.types import Operator, AddonPreferences
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty,EnumProperty
 from bpy.app.handlers import persistent
 
 def main():
@@ -63,7 +66,50 @@ def autoResetUpdate(self, context):
     else:
         bpy.app.handlers.load_post.remove(load_handler)
 
-class ResetSculptBrushes(bpy.types.Operator):
+def brushResetConditionUpdate(self, context):
+    if not self.autoResetBrushes:
+        self.autoResetBrushes = True;
+
+def isFileOutdated():
+    try:
+        currentPath = bpy.path.abspath("//")
+        currentFile = bpy.data.filepath
+        filetimestamp = os.path.getmtime(currentFile)
+    except (FileNotFoundError, IOError):
+        print("File Datecheck failed - Unsaved files cannot be date checked")
+        return False
+
+    apptimestamp = bpy.app.build_commit_timestamp
+
+    #print("apptime", apptimestamp)
+    #print("filetime", filetimestamp)
+    if apptimestamp > filetimestamp:
+        return True
+    return False
+
+class DialogBox(bpy.types.Operator):
+    bl_idname ="dialog.box"
+    bl_label = "Dialog Box"
+    doBrushReset: BoolProperty(
+        name="Reset all sculptbrushes",
+        default=True,
+    )
+    def execute(self, context):
+        if (self.doBrushReset):
+            bpy.ops.sculpt.reset_sculpt_brushes()
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        box.label(text="The file loaded is older than the app")
+        box.label(text="Resetting Brushes.")
+        layout.prop(self, "doBrushReset")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+class SCULPT_OT_resetSculptBrushes(bpy.types.Operator):
     """Reset Sculpt Brushes"""
     bl_idname = "sculpt.reset_sculpt_brushes"
     bl_label = "Reset All Brushes"
@@ -71,12 +117,19 @@ class ResetSculptBrushes(bpy.types.Operator):
 
     def execute(self, context):
         main()
+        self.report({'INFO'},'Reset All Sculpt Brushes')
         return {'FINISHED'}
 
-class ResetSculptBrushesPreferences(AddonPreferences):
+class SCULPT_OT_resetSculptBrushesPreferences(AddonPreferences):
     # this must match the add-on name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __name__
+
+    enum_items = (
+        ('A', "Always                            ( Silent Mode )", ""),
+        ('B', "If File is older than Blender     ( Silent Mode )", ""),
+        ('C', "If File is older than Blender     ( Option Dialog )", ""),
+    )
 
     propEntry: BoolProperty(
         name="Add Entry to Brush Specials Dropdown  (ActiveTool-Properties-Panel)  [Requires 2.81 or newer]",
@@ -91,9 +144,16 @@ class ResetSculptBrushesPreferences(AddonPreferences):
     )
 
     autoResetBrushes: BoolProperty(
-        name="AutoReset on every File-Load",
+        name="AutoReset after loading Blend-File",
         default=False,
         update = autoResetUpdate,
+    )
+
+    brushResetCondition: EnumProperty(
+            name="AutoReset Condition",
+            items= enum_items,
+            update = brushResetConditionUpdate,
+            default="C"
     )
 
     def draw(self, context):
@@ -103,28 +163,42 @@ class ResetSculptBrushesPreferences(AddonPreferences):
         layout.prop(self, "fileEntry")
         layout.label(text="Extras")
         layout.prop(self, "autoResetBrushes")
+        layout.prop(self, "brushResetCondition")
 
 @persistent
 def load_handler(dummy):
-    print("ResetSculptBrushes - Reset on load:", bpy.data.filepath)
-    main()
+    addon_prefs = bpy.context.preferences.addons[__name__].preferences
+    if addon_prefs.brushResetCondition == "A" :
+        print("ResetSculptBrushes - Reset on load:", bpy.data.filepath)
+        bpy.ops.sculpt.reset_sculpt_brushes()
+        dummy.report({'INFO'},'Dummy Reset All Brushes')
+    elif addon_prefs.brushResetCondition == "B" :
+        if isFileOutdated():
+            print("ResetSculptBrushes - App newer than file: Reset", bpy.data.filepath)
+            bpy.ops.sculpt.reset_sculpt_brushes()
+    elif addon_prefs.brushResetCondition =="C":
+        if isFileOutdated() and addon_prefs.brushResetCondition =="C":
+            bpy.ops.dialog.box('INVOKE_DEFAULT')
 
 def register():
     hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
-    bpy.utils.register_class(ResetSculptBrushes)
-    bpy.utils.register_class(ResetSculptBrushesPreferences)
+    bpy.utils.register_class(SCULPT_OT_resetSculptBrushes)
+    bpy.utils.register_class(SCULPT_OT_resetSculptBrushesPreferences)
+    bpy.utils.register_class(DialogBox)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
     if addon_prefs.fileEntry and hasBrushContextMenu:
         bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
     if addon_prefs.propEntry:
         bpy.types.TOPBAR_MT_file_defaults.append(menu_draw)
-    if addon_prefs.autoResetBrushes:
+    if addon_prefs.autoResetBrushes :
         bpy.app.handlers.load_post.append(load_handler)
+
 
 def unregister():
     hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
-    bpy.utils.unregister_class(ResetSculptBrushes)
-    bpy.utils.unregister_class(ResetSculptBrushesPreferences)
+    bpy.utils.unregister_class(SCULPT_OT_resetSculptBrushes)
+    bpy.utils.unregister_class(SCULPT_OT_resetSculptBrushesPreferences)
+    bpy.utils.unregister_class(DialogBox)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
     if hasBrushContextMenu:
         bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
