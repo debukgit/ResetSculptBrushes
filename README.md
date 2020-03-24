@@ -1,4 +1,4 @@
-# ResetSculptBrushes 1.1.0
+# ResetSculptBrushes 1.1.1
 
 <img src="images/resetsculptbrushes.png">
 Adds a "Reset All Brushes" option to the sculpt brush property panel and to the filemenu of <a href="https://www.blender.org">blender 2.8</a>  to reset all brush settings back to their current defaults.
@@ -18,6 +18,11 @@ Adds a "Reset All Brushes" option to the sculpt brush property panel and to the 
 <img src="images/preferences.png">
 
 # What's New
+
+Updated to 1.1.1
+
+- Custom Brush Reset Protection Mechanism
+  Its now possibole to exclude custom brushes from being reset too, by changing their name to start with underscore "_"
 
 Updated to 1.1.0
 
