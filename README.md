@@ -22,7 +22,7 @@ Adds a "Reset All Brushes" option to the sculpt brush property panel and to the 
 Updated to 1.1.1
 
 - Custom Brush Reset Protection Mechanism
-  Its now possibole to exclude custom brushes from being reset too, by changing their name to start with underscore "_"
+  -  Its now possibole to exclude custom brushes from being reset too, by changing their name to start with underscore "_"
 
 Updated to 1.1.0
 
