@@ -20,7 +20,7 @@ bl_info = {
     "name": "ResetSculptBrushes",
     "description": "Resets All Sculpt Brushes",
     "author": "Debuk",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     'license': 'GPL v3',
     "blender": (2, 80, 0),
     "support": "COMMUNITY",
@@ -40,7 +40,8 @@ def main():
     for brush in bpy.data.brushes:
         if brush.use_paint_sculpt:
             bpy.context.tool_settings.sculpt.brush = brush
-            bpy.ops.brush.reset()
+            if not brush.name.startswith('_'):
+                bpy.ops.brush.reset()
     bpy.context.tool_settings.sculpt.brush = recentbrush
 
 def menu_draw(self, context):
@@ -87,9 +88,9 @@ def isFileOutdated():
         return True
     return False
 
-class DialogBox(bpy.types.Operator):
+class SCULPT_OT_DialogBox(bpy.types.Operator):
     bl_idname ="dialog.box"
-    bl_label = "Dialog Box"
+    bl_label = "Reset Sculpt Brushes"
     doBrushReset: BoolProperty(
         name="Reset all sculptbrushes",
         default=True,
@@ -126,7 +127,7 @@ class SCULPT_OT_resetSculptBrushesPreferences(AddonPreferences):
     bl_idname = __name__
 
     enum_items = (
-        ('A', "Always                            ( Silent Mode )", ""),
+        ('A', "Always     ( Silent Mode )", ""),
         ('B', "If File is older than Blender     ( Silent Mode )", ""),
         ('C', "If File is older than Blender     ( Option Dialog )", ""),
     )
@@ -184,7 +185,7 @@ def register():
     hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
     bpy.utils.register_class(SCULPT_OT_resetSculptBrushes)
     bpy.utils.register_class(SCULPT_OT_resetSculptBrushesPreferences)
-    bpy.utils.register_class(DialogBox)
+    bpy.utils.register_class(SCULPT_OT_DialogBox)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
     if addon_prefs.fileEntry and hasBrushContextMenu:
         bpy.types.VIEW3D_MT_brush_context_menu.append(menu_draw)
@@ -198,7 +199,7 @@ def unregister():
     hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
     bpy.utils.unregister_class(SCULPT_OT_resetSculptBrushes)
     bpy.utils.unregister_class(SCULPT_OT_resetSculptBrushesPreferences)
-    bpy.utils.unregister_class(DialogBox)
+    bpy.utils.unregister_class(SCULPT_OT_DialogBox)
     addon_prefs = bpy.context.preferences.addons[__name__].preferences
     if hasBrushContextMenu:
         bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
