@@ -17,6 +17,7 @@ Adds a "Reset All Brushes" option to the sculpt brush property panel and to the 
 
 <img src="images/preferences.png">
 
+
 # What's New
 
 Updated to 1.1.1
@@ -34,4 +35,5 @@ Updated to 1.1.0
 	- Dialog on load if BlendFiles might be outdated
 		- Compares Blenders Build Date with the Filedate and just resetting if the File is outdated
 		- Note: Clicking anywhere on screen closes the dialog without causing brushresets
+		- <img src="images/OnLoadMessage.png">
 		   
