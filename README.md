@@ -3,6 +3,15 @@
 <img src="images/resetsculptbrushes.png">
 Adds a "Reset All Brushes" option to the sculpt brush property panel and to the filemenu of <a href="https://www.blender.org">blender 2.8</a>  to reset all brush settings back to their current defaults.
 
+# Donate 
+
+Hej, I offer this addon for free, but if you can afford it, you can support me and buy me a coffee on ko-fi. If you can't afford it, don't worry. Anyway I hope you enjoy this addon. 
+
+Stay healthy!
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I31T92M)
+
+Thanky you! 
 
 # Installation
 
