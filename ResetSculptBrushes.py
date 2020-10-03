@@ -20,7 +20,7 @@ bl_info = {
     "name": "ResetSculptBrushes",
     "description": "Resets All Sculpt Brushes",
     "author": "Debuk",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     'license': 'GPL v3',
     "blender": (2, 80, 0),
     "support": "COMMUNITY",
@@ -197,14 +197,18 @@ def register():
 
 def unregister():
     hasBrushContextMenu = (2, 81, 16) <= bpy.app.version
+    if hasBrushContextMenu:
+        bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
+
+    addon_prefs = bpy.context.preferences.addons[__name__].preferences
+    if addon_prefs.propEntry:
+        bpy.types.TOPBAR_MT_file_defaults.remove(menu_draw)
+    if addon_prefs.autoResetBrushes :
+        bpy.app.handlers.load_post.remove(load_handler)
+
     bpy.utils.unregister_class(SCULPT_OT_resetSculptBrushes)
     bpy.utils.unregister_class(SCULPT_OT_resetSculptBrushesPreferences)
     bpy.utils.unregister_class(SCULPT_OT_DialogBox)
-    addon_prefs = bpy.context.preferences.addons[__name__].preferences
-    if hasBrushContextMenu:
-        bpy.types.VIEW3D_MT_brush_context_menu.remove(menu_draw)
-    bpy.types.TOPBAR_MT_file_defaults.remove(menu_draw)
-    bpy.app.handlers.load_post.remove(load_handler)
 
 if __name__ == "__main__":
     register()
